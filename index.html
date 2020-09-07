@@ -59,10 +59,18 @@
             text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
             color: #111;
             line-height: 1.6;
+            content: '';
+            white-space: pre-line;
+        }
+        .title:after {
             content: 'Hello world! 😅️ how are you? ...';
         }
-        .title:before {
-            content: 'Hello world! 😅️ how are you? ...';
+        .keyword {
+            /*color: #8A93EE;*/
+            color: #626BC6;
+        }
+        .keyword:after {
+            content: '';
         }
 
         * {
@@ -142,7 +150,7 @@
 <body>
 <div class="scene">
     <div class="title-wrapper">
-        <div class="title"></div>
+        <div class="title"><span class="keyword"></span></div>
     </div>
 
     <div class="image">

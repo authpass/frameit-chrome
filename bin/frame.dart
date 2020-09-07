@@ -20,6 +20,7 @@ const ARG_FRAMES_DIR = 'frames-dir';
 
 Future<void> main(List<String> args) async {
   PrintAppender.setupLogging(stderrLevel: Level.WARNING);
+
   final parser = ArgParser();
   parser.addOption(ARG_BASE_DIR,
       help: 'base dir of screenshots. (android/fastlane/metadata/android)');
@@ -72,7 +73,7 @@ Future<void> runFrame(String baseDir, String framesDirPath) async {
     final titleStrings =
         await _parseStrings(File(path.join(localeDir.path, 'title.strings')));
     final keywordStrings = await _parseStrings(
-            File(path.join(localeDir.path, 'keywords.strings'))) ??
+            File(path.join(localeDir.path, 'keyword.strings'))) ??
         {};
 
     if (titleStrings == null) {

@@ -30,6 +30,7 @@ class FrameProcess {
   ) async {
     checkArgument(dir.existsSync(), message: 'Dir does not exist $dir');
     _logger.info('Processing images in $dir');
+    final createdScreenshots = <String>[];
     await for (final fileEntity in dir.list(recursive: true)) {
       if (fileEntity is! File) {
         continue;
@@ -69,7 +70,9 @@ class FrameProcess {
       final indexHtml = File('index.html');
       final cssFile = File('index_override.css');
       final screenshotFile = File('screenshot.png');
-      await screenshotFile.delete();
+      if (screenshotFile.existsSync()) {
+        await screenshotFile.delete();
+      }
       if (!indexHtml.existsSync()) {
         throw StateError('Expected index.html to be in the current directory.');
       }
@@ -89,9 +92,43 @@ class FrameProcess {
       }
       await screenshotFile.copy(outFilePath);
 
+      createdScreenshots.add(outFilePath);
+
       _logger.info('Created (${runStopwatch.elapsedMilliseconds}ms) '
           '$outFilePath');
     }
+
+    final imageHtml = createdScreenshots.map((e) {
+      final src = path.relative(e, from: outDir.path);
+      return '''
+      <img src="$src" />
+       ''';
+    }).join('');
+
+    await File(path.join(outDir.path, '_present.html')).writeAsString('''
+    <html><head><title>present me</title>
+    <style>
+      img {
+      max-height: 600px;
+      }
+    </style>
+    </head>
+    $imageHtml
+    <body></body></html>
+    ''');
+
+    return createdScreenshots;
+  }
+
+  static String cssEscape(String str) {
+    str = str.replaceAllMapped(RegExp('[^A-Za-z _-]+'), (match) {
+      // str.replaceAllMapped(RegExp('[\n\t\'\"]'), (match) {
+      final str = match.group(0);
+      return str.runes.map((e) {
+        return '\\${e.toRadixString(16).padLeft(6, '0')}';
+      }).join('');
+    });
+    return '"$str"';
   }
 
   Future<String> _createCss(Frame frame, int targetWidth, int targetHeight,
@@ -99,6 +136,9 @@ class FrameProcess {
     final image = decodeImage(await frame.image.readAsBytes());
     final w = image.width;
     final h = image.height;
+    title ??= '';
+    keyword ??= '';
+    final separator = title.isNotEmpty && keyword.isNotEmpty ? ' ' : '';
     return '''
 :root {
   --frame-orig-width: $w;
@@ -110,8 +150,14 @@ class FrameProcess {
   --target-width: $targetWidth;
   --target-height: $targetHeight;
 }
-.title:before {
-    content: '$title';
+.keyword:before {
+    content: ${cssEscape(keyword)};
+}
+.keyword:after {
+    content: '$separator';
+}
+.title:after {
+    content: ${cssEscape(title)};
 }
 ''';
   }
