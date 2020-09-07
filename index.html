@@ -29,7 +29,8 @@
             --target-width: 1440;
             --target-height: 3040;
 
-            --frame-padding-horizontal: 5%;
+            --frame-padding-horizontal: 10%;
+            --title-padding-horizontal: 10%;
 
             --screenshot-orig-width: var(--target-width);
             --screenshot-orig-height: var(--target-height);
@@ -53,8 +54,15 @@
         .title {
             text-align: center;
             margin-top: 5%;
-            font-size: 56px;
-            text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+            /*font-size: 56px;*/
+            font-size: 5rem;
+            text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
+            color: #111;
+            line-height: 1.6;
+            content: 'Hello world! 😅️ how are you? ...';
+        }
+        .title:before {
+            content: 'Hello world! 😅️ how are you? ...';
         }
 
         * {
@@ -77,6 +85,11 @@
             width: calc(var(--scene-width) * 1px);
             height: calc(var(--scene-height) * 1px);
             overflow: hidden;
+        }
+
+        .title {
+            padding-left: var(--title-padding-horizontal);
+            padding-right: var(--title-padding-horizontal);
         }
 
         .image {
@@ -123,12 +136,13 @@
             position: relative;
         }
     </style>
+    <link rel="stylesheet" href="index_override.css" />
 </head>
 
 <body>
 <div class="scene">
     <div class="title-wrapper">
-        <div class="title">Hello world! 😅️ how are you? dbg: <span class="debug">asdf</span> ...</div>
+        <div class="title"></div>
     </div>
 
     <div class="image">
