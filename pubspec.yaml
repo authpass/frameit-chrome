@@ -1,4 +1,8 @@
-name: framechrome
+name: frameit_chrome
+version: 1.0.0
+description: >-
+  Embed app store and play store screenshots in device frames.
+  Drop in replacement for fastlane frameit.
 
 dependencies:
   meta: '>=1.0.0 <2.0.0'

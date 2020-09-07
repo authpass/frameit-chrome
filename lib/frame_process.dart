@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:framechrome/frameit_frame.dart';
+import 'package:frameit_chrome/frameit_frame.dart';
 import 'package:image/image.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -100,13 +100,11 @@ class FrameProcess {
 
     final imageHtml = createdScreenshots.map((e) {
       final src = path.relative(e, from: outDir.path);
-      return '''
-      <img src="$src" />
-       ''';
+      return '''<img src="$src" alt="" />''';
     }).join('');
 
     await File(path.join(outDir.path, '_present.html')).writeAsString('''
-    <html><head><title>present me</title>
+    <html lang="en"><head><title>present me</title>
     <style>
       img {
       max-height: 600px;

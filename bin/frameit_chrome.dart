@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:framechrome/frame_process.dart';
-import 'package:framechrome/frameit_frame.dart';
+import 'package:frameit_chrome/frame_process.dart';
+import 'package:frameit_chrome/frameit_frame.dart';
 import 'package:logging/logging.dart';
 import 'package:logging_appenders/logging_appenders.dart';
 import 'package:path/path.dart' as path;
@@ -12,11 +12,12 @@ import 'package:yaml/yaml.dart';
 
 final _logger = Logger('frame');
 
-const chromeBinary =
+const chromeBinaryMac =
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 const ARG_BASE_DIR = 'base-dir';
 const ARG_FRAMES_DIR = 'frames-dir';
+const ARG_CHROME_BINARY = 'chrome-binary';
 
 Future<void> main(List<String> args) async {
   PrintAppender.setupLogging(stderrLevel: Level.WARNING);
@@ -27,20 +28,29 @@ Future<void> main(List<String> args) async {
   parser.addOption(ARG_FRAMES_DIR,
       help:
           'dir with frames from https://github.com/fastlane/frameit-frames (e.g. checkout/frameit-frames/latest)');
+  parser.addOption(ARG_CHROME_BINARY,
+      help: 'Path to chrome binary.', defaultsTo: chromeBinaryMac);
   final result = parser.parse(args);
 
   final baseDir = result[ARG_BASE_DIR] as String;
   final framesDir = result[ARG_FRAMES_DIR] as String;
-  if (baseDir == null || framesDir == null) {
+  final chromeBinary = result[ARG_CHROME_BINARY] as String;
+  if (baseDir == null || framesDir == null || chromeBinary == null) {
     print(parser.usage);
     exit(1);
   }
-  await runFrame(baseDir, framesDir);
+  if (!File(chromeBinary).existsSync()) {
+    _logger.severe('Unable to find chrome at $chromeBinary');
+    print(parser.usage);
+    exit(1);
+  }
+  await runFrame(baseDir, framesDir, chromeBinary);
 }
 
 final localePattern = RegExp('^[a-z]{2}-[A-Z]{2}');
 
-Future<void> runFrame(String baseDir, String framesDirPath) async {
+Future<void> runFrame(
+    String baseDir, String framesDirPath, String chromeBinary) async {
   // validate folder.
   // find strings files (title.strings and keywords.strings)
   final dir = Directory(baseDir);
