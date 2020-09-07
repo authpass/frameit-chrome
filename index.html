@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        @font-face {
+            font-family: 'Rubik';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url(./fonts/rubik-regular.ttf);
+        }
+
+        @font-face {
+            font-family: 'Rubik';
+            font-style: normal;
+            font-weight: 800;
+            font-display: swap;
+            src: url(./fonts/rubik-bold.ttf);
+        }
+
+        :root {
+            --frame-orig-width: 1523;
+            --frame-orig-height: 3214;
+
+            --frame-orig-offset-x: 41;
+            --frame-orig-offset-y: 71;
+
+            --target-width: 1440;
+            --target-height: 3040;
+
+            --frame-padding-horizontal: 5%;
+
+            --screenshot-orig-width: var(--target-width);
+            --screenshot-orig-height: var(--target-height);
+
+            --scene-width: var(--target-width);
+            --scene-height: var(--target-height);
+
+            --scene-ratio: calc(var(--target-width) / var(--frame-orig-width));
+            --frame-offset-x: calc(var(--frame-orig-offset-x) / var(--frame-orig-width) * 100%);
+            --frame-offset-y: calc(var(--frame-orig-offset-y) / var(--frame-orig-height) * 100%);
+
+            --screenshot-width: calc(var(--scene-ratio) * 100%);
+            --screenshot-height: calc(var(--scene-ratio) * 100%);
+        }
+
+        .scene {
+            background: rgb(98, 107, 198);
+            background: linear-gradient(152deg, rgba(98, 107, 198, 0.11528361344537819) 0%, rgba(98, 107, 198, 0.5186449579831933) 100%);
+        }
+
+        .title {
+            text-align: center;
+            margin-top: 5%;
+            font-size: 56px;
+            text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            color: black;
+            font-weight: 800;
+            font-style: normal;
+            font-size: 26px;
+        }
+
+        .scene {
+            display: grid;
+            grid-template-rows: fit-content(50%) 99fr;
+            width: calc(var(--scene-width) * 1px);
+            height: calc(var(--scene-height) * 1px);
+            overflow: hidden;
+        }
+
+        .image {
+            padding-left: var(--frame-padding-horizontal);
+            padding-right: var(--frame-padding-horizontal);
+        }
+
+        .frame {
+            position: relative;
+            /*height: 100%;*/
+            padding-top: calc(var(--screenshot-orig-height) / var(--screenshot-orig-width) * 100%);
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .frame-bg {
+            background-image: url("sample/Samsung Galaxy S10 Prism Black.png");
+            background-size: contain;
+            background-repeat: no-repeat;
+            position: absolute;
+            /* just some round error stuff. */
+            top: 1px;
+            left: 1px;
+            right: 1px;
+            bottom: 1px;
+        }
+
+        .screenshot-bg {
+            position: absolute;
+            width: var(--screenshot-width);
+            height: var(--screenshot-height);
+            left: var(--frame-offset-x);
+            top: var(--frame-offset-y);
+            background-image: url("sample/samsung-galaxy-s10-plus-appbar_menu.png");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .screenshot {
+            width: var(--screenshot-width);
+            height: var(--screenshot-height);
+            margin-left: var(--frame-offset-x);
+            margin-top: var(--frame-offset-y);
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+<div class="scene">
+    <div class="title-wrapper">
+        <div class="title">Hello world! 😅️ how are you? dbg: <span class="debug">asdf</span> ...</div>
+    </div>
+
+    <div class="image">
+        <div class="frame">
+            <!--            <img class="screenshot" src="sample/samsung-galaxy-s10-plus-appbar_menu.png"/>-->
+            <div class="screenshot-bg"></div>
+            <div class="frame-bg"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>
