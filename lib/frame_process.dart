@@ -129,8 +129,10 @@ class FrameProcess {
     await File(path.join(outDir.path, '_present.html')).writeAsString('''
     <html lang="en"><head><title>present me</title>
     <style>
+      body { background-color: #efefef; }
       img {
-      max-height: 600px;
+        max-height: 600px;
+        margin-left: 16px;
       }
     </style>
     </head>
