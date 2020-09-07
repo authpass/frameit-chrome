@@ -10,10 +10,15 @@ import 'package:quiver/check.dart';
 final _logger = Logger('process_screenshots');
 
 class FrameProcess {
-  FrameProcess({@required this.chromeBinary, @required this.framesProvider});
+  FrameProcess(
+      {@required this.chromeBinary,
+      @required this.framesProvider,
+      this.pixelRatio});
 
   final String chromeBinary;
   final FramesProvider framesProvider;
+  final double pixelRatio;
+  bool validatedPixelRatio = false;
 
   String rewriteScreenshotName(String name) {
     if (name.contains('framed')) {
@@ -79,18 +84,35 @@ class FrameProcess {
       }
       await cssFile.writeAsString(css);
       final runStopwatch = Stopwatch()..start();
+
       final result = await Process.run(chromeBinary, [
         '--headless',
         '--no-sandbox',
         '--screenshot',
         '--hide-scrollbars',
-        '--window-size=${image.width},${image.height}',
+        '--window-size=${image.width ~/ pixelRatio},${image.height ~/ pixelRatio}',
         'index.html',
       ]);
       if (result.exitCode != 0) {
         throw StateError(
             'Chrome headless did not succeed. ${result.exitCode}: $result');
       }
+
+      if (!validatedPixelRatio) {
+        final screenshot = decodeImage(await screenshotFile.readAsBytes());
+        if (screenshot.width != image.width) {
+          throw StateError(
+              'Generated image width did not match original image width. '
+              'Wrong device pixel ratio?'
+              ' was: ${screenshot.width}'
+              ' expected: ${image.width}'
+              ' ratio: $pixelRatio');
+        }
+        validatedPixelRatio = true;
+      }
+      // final screenshotResized = copyResize(screenshot, width: image.width);
+      // await File(outFilePath).writeAsBytes(encodePng(screenshotResized));
+
       await screenshotFile.copy(outFilePath);
 
       createdScreenshots.add(outFilePath);
@@ -138,9 +160,10 @@ class FrameProcess {
     String title,
     String keyword,
   }) async {
+    final ratio = pixelRatio;
     final image = decodeImage(await frame.image.readAsBytes());
-    final w = image.width;
-    final h = image.height;
+    final w = image.width / ratio;
+    final h = image.height / ratio;
     title ??= '';
     keyword ??= '';
     final separator = title.isNotEmpty && keyword.isNotEmpty ? ' ' : '';
@@ -149,11 +172,11 @@ class FrameProcess {
   --frame-orig-width: $w;
   --frame-orig-height: $h;
 
-  --frame-orig-offset-x: ${frame.offsetX};
-  --frame-orig-offset-y: ${frame.offsetY};
+  --frame-orig-offset-x: ${frame.offsetX / ratio};
+  --frame-orig-offset-y: ${frame.offsetY / ratio};
 
-  --target-width: $targetWidth;
-  --target-height: $targetHeight;
+  --target-width: ${targetWidth / ratio};
+  --target-height: ${targetHeight / ratio};
 }
 .keyword:before {
     content: ${cssEscape(keyword)};
@@ -166,6 +189,9 @@ class FrameProcess {
 }
 .screenshot-bg {
     background-image: url("${screenshot.absolute.path}");
+}
+.frame-bg {
+    background-image: url("${frame.image.absolute.path}");
 }
 ''';
   }

@@ -18,6 +18,7 @@ const chromeBinaryMac =
 const ARG_BASE_DIR = 'base-dir';
 const ARG_FRAMES_DIR = 'frames-dir';
 const ARG_CHROME_BINARY = 'chrome-binary';
+const ARG_PIXEL_RATIO = 'pixel-ratio';
 
 Future<void> main(List<String> args) async {
   PrintAppender.setupLogging(stderrLevel: Level.WARNING);
@@ -30,12 +31,20 @@ Future<void> main(List<String> args) async {
           'dir with frames from https://github.com/fastlane/frameit-frames (e.g. checkout/frameit-frames/latest)');
   parser.addOption(ARG_CHROME_BINARY,
       help: 'Path to chrome binary.', defaultsTo: chromeBinaryMac);
+  parser.addOption(ARG_PIXEL_RATIO,
+      valueHelp: '2',
+      help: 'Device pixel to real pixel ratio.',
+      defaultsTo: '2');
   final result = parser.parse(args);
 
   final baseDir = result[ARG_BASE_DIR] as String;
   final framesDir = result[ARG_FRAMES_DIR] as String;
   final chromeBinary = result[ARG_CHROME_BINARY] as String;
-  if (baseDir == null || framesDir == null || chromeBinary == null) {
+  final pixelRatio = double.tryParse(result[ARG_PIXEL_RATIO].toString());
+  if (baseDir == null ||
+      framesDir == null ||
+      chromeBinary == null ||
+      pixelRatio == null) {
     print(parser.usage);
     exit(1);
   }
@@ -44,13 +53,13 @@ Future<void> main(List<String> args) async {
     print(parser.usage);
     exit(1);
   }
-  await runFrame(baseDir, framesDir, chromeBinary);
+  await runFrame(baseDir, framesDir, chromeBinary, pixelRatio);
 }
 
 final localePattern = RegExp('^[a-z]{2}-[A-Z]{2}');
 
-Future<void> runFrame(
-    String baseDir, String framesDirPath, String chromeBinary) async {
+Future<void> runFrame(String baseDir, String framesDirPath, String chromeBinary,
+    double pixelRatio) async {
   // validate folder.
   // find strings files (title.strings and keywords.strings)
   final dir = Directory(baseDir);
@@ -68,6 +77,7 @@ Future<void> runFrame(
   final frameProcess = FrameProcess(
     chromeBinary: chromeBinary,
     framesProvider: framesProvider,
+    pixelRatio: pixelRatio,
   );
 
   await for (final localeDir in dir.list()) {
@@ -93,7 +103,7 @@ Future<void> runFrame(
     _logger.finer('for ${path.basename(localeDir.path)} Found titles: '
         '${const JsonEncoder.withIndent('  ').convert(titleStrings)}');
 
-    final imagesDir = path.join(localeDir.path, 'images');
+    final imagesDir = path.join(localeDir.path);
     final imagesOutDir =
         path.join(outDir.path, path.relative(imagesDir, from: dir.path));
     await frameProcess.processScreenshots(
@@ -124,3 +134,6 @@ Future<Map<String, String>> _parseStrings(File file) async {
   }
   return strings;
 }
+
+// Galaxy S10: 1523x3214
+// iPhone XS Max: 1413x2844

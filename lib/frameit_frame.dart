@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:frameit_chrome/frame_colors.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
@@ -17,6 +18,25 @@ class FramesProvider {
 
   final List<Frame> _frames;
 
+  static MapEntry<String, String> _frameInfo(
+      String deviceName, String fileBasename) {
+    if (fileBasename.startsWith('Apple ') && !deviceName.startsWith('Apple ')) {
+      fileBasename = fileBasename.replaceAll('Apple ', '');
+    }
+    if (fileBasename.startsWith(deviceName)) {
+      if (fileBasename.length > deviceName.length) {
+        final color = fileBasename.substring(deviceName.length + 1);
+        if (FRAME_COLORS.contains(color)) {
+          _logger.info('Found for $deviceName: $fileBasename');
+          return MapEntry(deviceName, color);
+        }
+      } else {
+        return MapEntry(deviceName, null);
+      }
+    }
+    return null;
+  }
+
   static Future<FramesProvider> create(Directory baseDir) async {
     final frameImages = (await baseDir
             .list()
@@ -33,7 +53,9 @@ class FramesProvider {
       final map = e.value as Map<String, Object>;
 
       final f = frameImages.firstWhere(
-          (frame) => path.basename(frame.path).contains(e.key), orElse: () {
+          (frame) =>
+              _frameInfo(e.key, path.basenameWithoutExtension(frame.path)) !=
+              null, orElse: () {
         _logger.warning('Cannot find ${e.key} image.');
         return null;
       });
@@ -61,8 +83,9 @@ class FramesProvider {
           width: int.parse(map['width'].toString()),
           image: f);
     });
-    return FramesProvider._(
-        offsets.where((element) => element != null).toList());
+    final frames = offsets.where((element) => element != null).toList();
+    frames.sort((a, b) => -a.nameMatch.compareTo(b.nameMatch));
+    return FramesProvider._(frames);
   }
 
   Frame frameForScreenshot(String screenshotName) {

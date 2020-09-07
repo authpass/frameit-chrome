@@ -44,6 +44,12 @@
 
             --screenshot-width: calc(var(--scene-ratio) * 100%);
             --screenshot-height: calc(var(--scene-ratio) * 100%);
+
+            --font-scale-factor: calc(var(--scene-height) / 3214);
+        }
+
+        html {
+            font-size: calc(16px * var(--font-scale-factor));
         }
 
         .scene {
@@ -97,7 +103,8 @@
             color: black;
             font-weight: 800;
             font-style: normal;
-            font-size: 26px;
+            /*font-size: calc(12px * calc(3214 * var(--scene-height)));*/
+            /*font-size: calc(26px * calc(3214 * var(--scene-height)));*/
         }
 
         .scene {
@@ -121,7 +128,7 @@
         .frame {
             position: relative;
             /*height: 100%;*/
-            padding-top: calc(var(--screenshot-orig-height) / var(--screenshot-orig-width) * 100%);
+            padding-top: calc(var(--frame-orig-height) / var(--frame-orig-width) * 100%);
             top: 50%;
             transform: translateY(-50%);
         }
@@ -141,12 +148,19 @@
         .screenshot-bg {
             position: absolute;
             width: var(--screenshot-width);
-            height: var(--screenshot-height);
+            height: 100%; /*var(--screenshot-height);*/
             left: var(--frame-offset-x);
             top: var(--frame-offset-y);
             background-image: url("sample/samsung-galaxy-s10-plus-appbar_menu.png");
             background-size: contain;
             background-repeat: no-repeat;
+        }
+        .frame-inner {
+            position: absolute;
+            top:0;
+            left:0;
+            right: 0;
+            bottom: 0;
         }
 
         .screenshot {
@@ -168,9 +182,11 @@
 
     <div class="image">
         <div class="frame">
-            <!--            <img class="screenshot" src="sample/samsung-galaxy-s10-plus-appbar_menu.png"/>-->
-            <div class="screenshot-bg"></div>
-            <div class="frame-bg"></div>
+            <div class="frame-inner">
+                <!--            <img class="screenshot" src="sample/samsung-galaxy-s10-plus-appbar_menu.png"/>-->
+                <div class="screenshot-bg"></div>
+                <div class="frame-bg"></div>
+            </div>
         </div>
     </div>
 </div>
