@@ -51,9 +51,19 @@
             background: linear-gradient(152deg, rgba(98, 107, 198, 0.11528361344537819) 0%, rgba(98, 107, 198, 0.5186449579831933) 100%);
         }
 
+        .title-wrapper {
+            position: relative;
+        }
+
         .title {
+            position: absolute;
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+
             text-align: center;
-            margin-top: 5%;
+            margin-top: 1%;
+            /*margin-top: 5%;*/
             /*font-size: 56px;*/
             font-size: 5rem;
             text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
@@ -62,13 +72,16 @@
             content: '';
             white-space: pre-line;
         }
+
         .title:after {
             content: 'Hello world! 😅️ how are you? ...';
         }
+
         .keyword {
             /*color: #8A93EE;*/
             color: #626BC6;
         }
+
         .keyword:after {
             content: '';
         }
@@ -89,7 +102,7 @@
 
         .scene {
             display: grid;
-            grid-template-rows: fit-content(50%) 99fr;
+            grid-template-rows: minmax(18%, auto) 99fr;
             width: calc(var(--scene-width) * 1px);
             height: calc(var(--scene-height) * 1px);
             overflow: hidden;
@@ -144,7 +157,7 @@
             position: relative;
         }
     </style>
-    <link rel="stylesheet" href="index_override.css" />
+    <link rel="stylesheet" href="index_override.css"/>
 </head>
 
 <body>

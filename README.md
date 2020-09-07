@@ -7,6 +7,11 @@ It uses a simple dart script to locate localized screenshots and parses
 `title.strings` and `keyword.strings` and uses **chrome headless**
 to render the screenshot with some css and html magic.
 
+# Create screenshots
+
+Use any tool to create non-framed screenshots, for flutter I've used
+[screenshots package](https://pub.dev/packages/screenshots).
+
 # Usage
 
 * Download device frames from https://github.com/fastlane/frameit-frames
@@ -29,3 +34,16 @@ to render the screenshot with some css and html magic.
   ```shell
   dart bin/frameit_chrome.dart --base-dir=/myproject/fastlane/metadata/android --frames-dir=path-to-downloaded/frameit-frames/latest --chrome-binary="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   ```
+
+# Example
+
+Small example how localized [AuthPass](https://authpass.app) screenshots look like ;-)
+
+[![Example Screenshot](./_docs/example.png)](./_docs/example.png)
+
+# TODO
+
+* Run from `pub global`
+* Allow more customizations
+  * Frame screenshot overrides.
+  * CSS customizations.

@@ -64,6 +64,7 @@ class FrameProcess {
         frame,
         image.width,
         image.height,
+        screenshot: file,
         title: title,
         keyword: keyword,
       );
@@ -129,8 +130,14 @@ class FrameProcess {
     return '"$str"';
   }
 
-  Future<String> _createCss(Frame frame, int targetWidth, int targetHeight,
-      {String title, String keyword}) async {
+  Future<String> _createCss(
+    Frame frame,
+    int targetWidth,
+    int targetHeight, {
+    @required File screenshot,
+    String title,
+    String keyword,
+  }) async {
     final image = decodeImage(await frame.image.readAsBytes());
     final w = image.width;
     final h = image.height;
@@ -156,6 +163,9 @@ class FrameProcess {
 }
 .title:after {
     content: ${cssEscape(title)};
+}
+.screenshot-bg {
+    background-image: url("${screenshot.absolute.path}");
 }
 ''';
   }
