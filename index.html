@@ -29,7 +29,7 @@
             --target-width: 1440;
             --target-height: 3040;
 
-            --frame-padding-horizontal: 10%;
+            --frame-padding-horizontal: 12%;
             --title-padding-horizontal: 10%;
 
             --screenshot-orig-width: var(--target-width);
@@ -144,7 +144,9 @@
             right: 1px;
             bottom: 1px;
         }
-
+        .frame-bg-shadow {
+            filter: drop-shadow(2px 4px 6px black);
+        }
         .screenshot-bg {
             position: absolute;
             width: var(--screenshot-width);
@@ -183,7 +185,8 @@
     <div class="image">
         <div class="frame">
             <div class="frame-inner">
-                <!--            <img class="screenshot" src="sample/samsung-galaxy-s10-plus-appbar_menu.png"/>-->
+                <!-- a second frame below everything, so we can draw a shadow. -->
+                <div class="frame-bg frame-bg-shadow"></div>
                 <div class="screenshot-bg"></div>
                 <div class="frame-bg"></div>
             </div>
