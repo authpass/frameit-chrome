@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:frameit_chrome/config.dart';
 import 'package:frameit_chrome/frame_process.dart';
 import 'package:frameit_chrome/frameit_frame.dart';
 import 'package:logging/logging.dart';
@@ -53,7 +54,11 @@ Future<void> main(List<String> args) async {
     print(parser.usage);
     exit(1);
   }
-  await runFrame(baseDir, framesDir, chromeBinary, pixelRatio);
+  try {
+    await runFrame(baseDir, framesDir, chromeBinary, pixelRatio);
+  } catch (e, stackTrace) {
+    _logger.severe('Error while creating frames.', e, stackTrace);
+  }
 }
 
 final localePattern = RegExp('^[a-z]{2}-[A-Z]{2}');
@@ -69,12 +74,14 @@ Future<void> runFrame(String baseDir, String framesDirPath, String chromeBinary,
     _logger.info('Deleting output directory $outDir');
     await outDir.delete(recursive: true);
   }
+  final config = await FrameConfig.load(baseDir);
   await outDir.create(recursive: true);
   final framesDir = Directory(framesDirPath);
   checkArgument(framesDir.existsSync(), message: '$framesDir does not exist.');
   final framesProvider = await FramesProvider.create(framesDir);
 
   final frameProcess = FrameProcess(
+    config: config,
     chromeBinary: chromeBinary,
     framesProvider: framesProvider,
     pixelRatio: pixelRatio,

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:frameit_chrome/config.dart';
 import 'package:frameit_chrome/frameit_frame.dart';
 import 'package:image/image.dart';
 import 'package:logging/logging.dart';
@@ -10,21 +11,47 @@ import 'package:quiver/check.dart';
 final _logger = Logger('process_screenshots');
 
 class FrameProcess {
-  FrameProcess(
-      {@required this.chromeBinary,
-      @required this.framesProvider,
-      this.pixelRatio});
+  FrameProcess({
+    this.config,
+    @required this.chromeBinary,
+    @required this.framesProvider,
+    this.pixelRatio,
+  });
 
+  final FrameConfig config;
   final String chromeBinary;
   final FramesProvider framesProvider;
   final double pixelRatio;
   bool validatedPixelRatio = false;
 
-  String rewriteScreenshotName(String name) {
+  List<String> rewriteScreenshotName(String name) {
     if (name.contains('framed')) {
       return null;
     }
-    return name.replaceAll('samsung-galaxy-s10-plus', 'samsung-galaxy-s10');
+    final rewrite = config?.rewrite;
+    if (rewrite == null) {
+      return [name];
+    }
+
+    final ret = <String>[];
+    for (final r in rewrite) {
+      final matches = r.patternRegExp.allMatches(name);
+      if (matches == null || matches.isEmpty) {
+        return [name];
+      }
+      var newName = name;
+      if (r.replace != null) {
+        newName = name.replaceAll(r.patternRegExp, r.replace);
+      }
+      if (r.duplicate) {
+        ret.add(newName);
+      } else {
+        return ret;
+      }
+    }
+    ret.add(name);
+    // return name.replaceAll('samsung-galaxy-s10-plus', 'samsung-galaxy-s10');
+    return ret;
   }
 
   Future<void> processScreenshots(
@@ -42,84 +69,29 @@ class FrameProcess {
       }
       final file = fileEntity as File;
 
-      final image = decodeImage(await file.readAsBytes());
-
       final name =
           rewriteScreenshotName(path.basenameWithoutExtension(file.path));
       if (name == null) {
         continue;
       }
-      final outFilePath =
-          path.join(outDir.path, path.relative(file.path, from: dir.path));
-      await File(outFilePath).parent.create(recursive: true);
 
-      // final outFile = path.join(file.parent.path,
-      //     '{path.basenameWithoutExtension(file.path)}_framed.png');
+      for (final variant in name) {
+        final outFilePath = await _processScreenshot(
+          dir,
+          outDir,
+          file,
+          titleStrings,
+          keywordStrings,
+          variant,
+        );
 
-      // find title and keyword
-      final title = _findString(titleStrings, name);
-      final keyword = _findString(keywordStrings, name);
-      if (title == null) {
-        continue;
-      }
-      final frame = framesProvider.frameForScreenshot(name);
-      _logger.fine('Rendering $name with title: $title ($keyword) and $frame');
-
-      final css = await _createCss(
-        frame,
-        image.width,
-        image.height,
-        screenshot: file,
-        title: title,
-        keyword: keyword,
-      );
-      final indexHtml = File('index.html');
-      final cssFile = File('index_override.css');
-      final screenshotFile = File('screenshot.png');
-      if (screenshotFile.existsSync()) {
-        await screenshotFile.delete();
-      }
-      if (!indexHtml.existsSync()) {
-        throw StateError('Expected index.html to be in the current directory.');
-      }
-      await cssFile.writeAsString(css);
-      final runStopwatch = Stopwatch()..start();
-
-      final result = await Process.run(chromeBinary, [
-        '--headless',
-        '--no-sandbox',
-        '--screenshot',
-        '--hide-scrollbars',
-        '--window-size=${image.width ~/ pixelRatio},${image.height ~/ pixelRatio}',
-        'index.html',
-      ]);
-      if (result.exitCode != 0) {
-        throw StateError(
-            'Chrome headless did not succeed. ${result.exitCode}: $result');
-      }
-
-      if (!validatedPixelRatio) {
-        final screenshot = decodeImage(await screenshotFile.readAsBytes());
-        if (screenshot.width != image.width) {
-          throw StateError(
-              'Generated image width did not match original image width. '
-              'Wrong device pixel ratio?'
-              ' was: ${screenshot.width}'
-              ' expected: ${image.width}'
-              ' ratio: $pixelRatio');
+        if (outFilePath != null) {
+          createdScreenshots.add(outFilePath);
         }
-        validatedPixelRatio = true;
       }
-      // final screenshotResized = copyResize(screenshot, width: image.width);
-      // await File(outFilePath).writeAsBytes(encodePng(screenshotResized));
-
-      await screenshotFile.copy(outFilePath);
-
-      createdScreenshots.add(outFilePath);
-
-      _logger.info('Created (${runStopwatch.elapsedMilliseconds}ms) '
-          '$outFilePath');
     }
+
+    createdScreenshots.sort((a, b) => a.compareTo(b));
 
     final imageHtml = createdScreenshots.map((e) {
       final src = path.relative(e, from: outDir.path);
@@ -141,6 +113,96 @@ class FrameProcess {
     ''');
 
     return createdScreenshots;
+  }
+
+  Future<String> _processScreenshot(
+      Directory srcDir,
+      Directory outDir,
+      File file,
+      Map<String, String> titleStrings,
+      Map<String, String> keywordStrings,
+      String screenshotName) async {
+    // final outFile = path.join(file.parent.path,
+    //     '{path.basenameWithoutExtension(file.path)}_framed.png');
+
+    // find title and keyword
+    final imageConfig = config.findImageConfig(screenshotName);
+    final title = _findString(titleStrings, screenshotName);
+    final keyword = _findString(keywordStrings, screenshotName);
+    if (title == null) {
+      return null;
+    }
+
+    final replacedTargetName =
+        path.join(file.parent.path, '$screenshotName.png');
+    final outFilePath = path.join(
+        outDir.path, path.relative(replacedTargetName, from: srcDir.path));
+    await File(outFilePath).parent.create(recursive: true);
+
+    final frame = framesProvider
+        .frameForScreenshot(imageConfig?.device ?? screenshotName);
+    _logger.fine(
+        'Rendering $screenshotName with title: $title ($keyword) and $frame');
+
+    final image = decodeImage(await file.readAsBytes());
+
+    final css = await _createCss(
+      frame,
+      image.width,
+      image.height,
+      screenshot: file,
+      title: title,
+      keyword: keyword,
+    );
+    final indexHtml = File('index.html');
+    final cssFile = File('index_override.css');
+    final screenshotFile = File('screenshot.png');
+    if (screenshotFile.existsSync()) {
+      await screenshotFile.delete();
+    }
+    if (!indexHtml.existsSync()) {
+      throw StateError('Expected index.html to be in the current directory.');
+    }
+    await cssFile.writeAsString(css);
+    final runStopwatch = Stopwatch()..start();
+
+    final width = imageConfig?.cropWidth ?? image.width;
+    final height = imageConfig?.cropHeight ?? image.height;
+
+    final result = await Process.run(chromeBinary, [
+      '--headless',
+      '--no-sandbox',
+      '--screenshot',
+      '--hide-scrollbars',
+      '--window-size=${width ~/ pixelRatio},${height ~/ pixelRatio}',
+      'index.html',
+    ]);
+    if (result.exitCode != 0) {
+      throw StateError(
+          'Chrome headless did not succeed. ${result.exitCode}: $result');
+    }
+
+    if (!validatedPixelRatio) {
+      final screenshot = decodeImage(await screenshotFile.readAsBytes());
+      if (screenshot.width != width) {
+        throw StateError(
+            'Generated image width did not match original image width. '
+            'Wrong device pixel ratio?'
+            ' was: ${screenshot.width}'
+            ' expected: $width'
+            ' ratio: $pixelRatio');
+      }
+      validatedPixelRatio = true;
+    }
+    // final screenshotResized = copyResize(screenshot, width: image.width);
+    // await File(outFilePath).writeAsBytes(encodePng(screenshotResized));
+
+    await screenshotFile.copy(outFilePath);
+
+    _logger.info('Created (${runStopwatch.elapsedMilliseconds}ms) '
+        '$outFilePath');
+
+    return outFilePath;
   }
 
   static String cssEscape(String str) {
