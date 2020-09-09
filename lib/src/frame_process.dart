@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:frameit_chrome/config.dart';
-import 'package:frameit_chrome/frameit_frame.dart';
+import 'package:frameit_chrome/src/config.dart';
+import 'package:frameit_chrome/src/frameit_frame.dart';
 import 'package:image/image.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -35,18 +35,27 @@ class FrameProcess {
 
     final ret = <String>[];
     for (final r in rewrite) {
-      final matches = r.patternRegExp.allMatches(name);
-      if (matches == null || matches.isEmpty) {
-        return [name];
+      final hasMatch = r.patternRegExp.hasMatch(name);
+      if (!hasMatch) {
+        if (r.action == FileAction.include) {
+          return ret;
+        }
+        continue;
       }
       var newName = name;
       if (r.replace != null) {
         newName = name.replaceAll(r.patternRegExp, r.replace);
       }
-      if (r.duplicate) {
-        ret.add(newName);
-      } else {
-        return ret;
+      switch (r.action) {
+        case FileAction.duplicate:
+          ret.add(newName);
+          break;
+        case FileAction.rename:
+          return ret..add(newName);
+        case FileAction.exclude:
+          return null;
+        case FileAction.include:
+          break;
       }
     }
     ret.add(name);
@@ -201,6 +210,10 @@ class FrameProcess {
 
     _logger.info('Created (${runStopwatch.elapsedMilliseconds}ms) '
         '$outFilePath');
+    // if (srcDir.path.contains('de-DE') && outFilePath.contains('launchscreen')) {
+    //   print('DEBUG me.');
+    //   exit(0);
+    // }
 
     return outFilePath;
   }
@@ -210,7 +223,7 @@ class FrameProcess {
       // str.replaceAllMapped(RegExp('[\n\t\'\"]'), (match) {
       final str = match.group(0);
       return str.runes.map((e) {
-        return '\\${e.toRadixString(16).padLeft(6, '0')}';
+        return '\\${e.toRadixString(16).padLeft(6, '0')} ';
       }).join('');
     });
     return '"$str"';

@@ -33,7 +33,7 @@ FileNameMapping _$FileNameMappingFromJson(Map json) {
   return FileNameMapping(
     pattern: json['pattern'] as String,
     replace: json['replace'] as String,
-    duplicate: json['duplicate'] as bool,
+    action: _$enumDecode(_$FileActionEnumMap, json['action']),
   );
 }
 
@@ -41,8 +41,35 @@ Map<String, dynamic> _$FileNameMappingToJson(FileNameMapping instance) =>
     <String, dynamic>{
       'pattern': instance.pattern,
       'replace': instance.replace,
-      'duplicate': instance.duplicate,
+      'action': _$FileActionEnumMap[instance.action],
     };
+
+T _$enumDecode<T>(
+  Map<T, dynamic> enumValues,
+  dynamic source, {
+  T unknownValue,
+}) {
+  if (source == null) {
+    throw ArgumentError('A value must be provided. Supported values: '
+        '${enumValues.values.join(', ')}');
+  }
+
+  final value = enumValues.entries
+      .singleWhere((e) => e.value == source, orElse: () => null)
+      ?.key;
+
+  if (value == null && unknownValue == null) {
+    throw ArgumentError('`$source` is not one of the supported values: '
+        '${enumValues.values.join(', ')}');
+  }
+  return value ?? unknownValue;
+}
+
+const _$FileActionEnumMap = {
+  FileAction.duplicate: 'duplicate',
+  FileAction.exclude: 'exclude',
+  FileAction.rename: 'rename',
+};
 
 FrameImage _$FrameImageFromJson(Map json) {
   return FrameImage(
@@ -58,3 +85,9 @@ Map<String, dynamic> _$FrameImageToJson(FrameImage instance) =>
       'cropHeight': instance.cropHeight,
       'device': instance.device,
     };
+
+// **************************************************************************
+// StaticTextGenerator
+// **************************************************************************
+
+// ignore_for_file: implicit_dynamic_parameter,strong_mode_implicit_dynamic_parameter,strong_mode_implicit_dynamic_variable,non_constant_identifier_names,unused_element

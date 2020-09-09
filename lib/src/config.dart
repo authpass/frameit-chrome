@@ -38,19 +38,30 @@ class FrameConfig {
   }
 }
 
+enum FileAction {
+  duplicate,
+  exclude,
+  rename,
+  include,
+}
+
 @JsonSerializable(nullable: false, anyMap: true)
 class FileNameMapping {
   FileNameMapping({
     this.pattern,
     this.replace,
-    @JsonKey(defaultValue: false) this.duplicate,
+    // @JsonKey(defaultValue: false) this.duplicate,
+    // @JsonKey(defaultValue: false) this.exclude,
+    @JsonKey(defaultValue: FileAction.rename) this.action,
   });
   factory FileNameMapping.fromJson(Map json) => _$FileNameMappingFromJson(json);
   Map<String, dynamic> toJson() => _$FileNameMappingToJson(this);
 
   final String pattern;
   final String replace;
-  final bool duplicate;
+  // final bool duplicate;
+  // final bool exclude;
+  final FileAction action;
 
   RegExp _patternRegExp;
   RegExp get patternRegExp => _patternRegExp ??= RegExp(pattern);

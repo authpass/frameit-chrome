@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:frameit_chrome/config.dart';
-import 'package:frameit_chrome/frame_process.dart';
-import 'package:frameit_chrome/frameit_frame.dart';
+import 'package:frameit_chrome/src/config.dart';
+import 'package:frameit_chrome/src/frame_process.dart';
+import 'package:frameit_chrome/src/frameit_frame.dart';
 import 'package:logging/logging.dart';
 import 'package:logging_appenders/logging_appenders.dart';
 import 'package:path/path.dart' as path;

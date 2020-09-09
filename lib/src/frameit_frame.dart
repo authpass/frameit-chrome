@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:frameit_chrome/frame_colors.dart';
+import 'package:frameit_chrome/src/frame_colors.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
