@@ -12,12 +12,14 @@ final _logger = Logger('process_screenshots');
 
 class FrameProcess {
   FrameProcess({
+    @required this.workingDir,
     this.config,
     @required this.chromeBinary,
     @required this.framesProvider,
     this.pixelRatio,
   });
 
+  final Directory workingDir;
   final FrameConfig config;
   final String chromeBinary;
   final FramesProvider framesProvider;
@@ -163,9 +165,9 @@ class FrameProcess {
       title: title,
       keyword: keyword,
     );
-    final indexHtml = File('index.html');
-    final cssFile = File('index_override.css');
-    final screenshotFile = File('screenshot.png');
+    final indexHtml = File(path.join(workingDir.path, 'index.html'));
+    final cssFile = File(path.join(workingDir.path, 'index_override.css'));
+    final screenshotFile = File(path.join(workingDir.path, 'screenshot.png'));
     if (screenshotFile.existsSync()) {
       await screenshotFile.delete();
     }
@@ -178,14 +180,17 @@ class FrameProcess {
     final width = imageConfig?.cropWidth ?? image.width;
     final height = imageConfig?.cropHeight ?? image.height;
 
-    final result = await Process.run(chromeBinary, [
-      '--headless',
-      '--no-sandbox',
-      '--screenshot',
-      '--hide-scrollbars',
-      '--window-size=${width ~/ pixelRatio},${height ~/ pixelRatio}',
-      'index.html',
-    ]);
+    final result = await Process.run(
+        chromeBinary,
+        [
+          '--headless',
+          '--no-sandbox',
+          '--screenshot',
+          '--hide-scrollbars',
+          '--window-size=${width ~/ pixelRatio},${height ~/ pixelRatio}',
+          'index.html',
+        ],
+        workingDirectory: workingDir.path);
     if (result.exitCode != 0) {
       throw StateError(
           'Chrome headless did not succeed. ${result.exitCode}: $result');

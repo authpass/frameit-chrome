@@ -5,6 +5,7 @@ import 'package:args/args.dart';
 import 'package:frameit_chrome/src/config.dart';
 import 'package:frameit_chrome/src/frame_process.dart';
 import 'package:frameit_chrome/src/frameit_frame.dart';
+import 'package:frameit_chrome/src/scene.dart';
 import 'package:logging/logging.dart';
 import 'package:logging_appenders/logging_appenders.dart';
 import 'package:path/path.dart' as path;
@@ -21,6 +22,8 @@ const ARG_FRAMES_DIR = 'frames-dir';
 const ARG_CHROME_BINARY = 'chrome-binary';
 const ARG_PIXEL_RATIO = 'pixel-ratio';
 
+const FRAMES_REPO = 'https://github.com/fastlane/frameit-frames';
+
 Future<void> main(List<String> args) async {
   PrintAppender.setupLogging(stderrLevel: Level.WARNING);
 
@@ -29,7 +32,7 @@ Future<void> main(List<String> args) async {
       help: 'base dir of screenshots. (android/fastlane/metadata/android)');
   parser.addOption(ARG_FRAMES_DIR,
       help:
-          'dir with frames from https://github.com/fastlane/frameit-frames (e.g. checkout/frameit-frames/latest)');
+          'dir with frames from $FRAMES_REPO (e.g. checkout/frameit-frames/latest)');
   parser.addOption(ARG_CHROME_BINARY,
       help: 'Path to chrome binary.', defaultsTo: chromeBinaryMac);
   parser.addOption(ARG_PIXEL_RATIO,
@@ -77,14 +80,20 @@ Future<void> runFrame(String baseDir, String framesDirPath, String chromeBinary,
   final config = await FrameConfig.load(baseDir);
   await outDir.create(recursive: true);
   final framesDir = Directory(framesDirPath);
-  checkArgument(framesDir.existsSync(), message: '$framesDir does not exist.');
+  checkArgument(framesDir.existsSync(),
+      message: '$framesDir does not exist (download $FRAMES_REPO).');
   final framesProvider = await FramesProvider.create(framesDir);
+
+  final tempDir = await Directory.systemTemp.createTemp('frameit_chrome');
+  _logger.fine('Using ${tempDir.path}');
+  await Assets.extractTo(tempDir);
 
   final frameProcess = FrameProcess(
     config: config,
     chromeBinary: chromeBinary,
     framesProvider: framesProvider,
     pixelRatio: pixelRatio,
+    workingDir: Directory(path.join(tempDir.path, 'asset')),
   );
 
   await for (final localeDir in dir.list()) {
@@ -120,6 +129,9 @@ Future<void> runFrame(String baseDir, String framesDirPath, String chromeBinary,
       keywordStrings,
     );
   }
+
+  _logger.fine('Deleting temp directory.');
+  await tempDir.delete(recursive: true);
 }
 
 Future<Map<String, String>> _parseStrings(File file) async {

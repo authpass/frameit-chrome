@@ -1,8 +1,25 @@
 targets:
   $default:
+    sources:
+      include:
+        - tool/**
+        - lib/**
+        - asset/**
+        - $package$
     builders:
       builder_static_text|static_text:
         generate_for:
           - lib/**/*.dart
         options:
           content: '// ignore_for_file: implicit_dynamic_parameter,strong_mode_implicit_dynamic_parameter,strong_mode_implicit_dynamic_variable,non_constant_identifier_names,unused_element'
+      frameit_chrome|assetBundler:
+        generate_for:
+          - lib/src/scene.dart
+        options:
+          filePattern: 'asset/**'
+builders:
+  assetBundler:
+    import: 'tool/builder.dart'
+    builder_factories: ["assetBundler"]
+    build_extensions: {".dart": [".g.dart"]}
+    build_to: source

@@ -69,6 +69,7 @@ const _$FileActionEnumMap = {
   FileAction.duplicate: 'duplicate',
   FileAction.exclude: 'exclude',
   FileAction.rename: 'rename',
+  FileAction.include: 'include',
 };
 
 FrameImage _$FrameImageFromJson(Map json) {
