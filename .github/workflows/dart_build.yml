@@ -1,15 +1,21 @@
 name: Dart Build Exe
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: [push]
 
 jobs:
   build:
+    strategy:
+      matrix:
+#        os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - os: macos-latest
+            name: macos
+          - os: ubuntu-latest
+            name: linux
+          - os: windows-latest
+            name: windows
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
 #    container:
 #      image:  google/dart:latest
@@ -22,10 +28,67 @@ jobs:
     - name: Install dependencies
       run: pub get
     - name: compile
-      run: dart compile exe bin/frameit_chrome.dart -o frameit_chrome_linux.exe
+      run: dart compile exe bin/frameit_chrome.dart -o frameit_chrome_${{ matrix.name }}.exe
     - name: Upload Artifact
       uses: actions/upload-artifact@v2.1.4
       with:
         # Artifact name
-        name: frameit_chrome_linux.exe
-        path: frameit_chrome_linux.exe
+        name: frameit_chrome_${{ matrix.name }}.exe
+        path: frameit_chrome_${{ matrix.name }}.exe
+#    - name: Update release
+#      if: startsWith(github.ref, 'refs/tags/v')
+#      uses: johnwbyrd/update-release@v1
+#      with:
+#        token: ${{ secrets.GITHUB_TOKEN }}
+#        draft: true
+#        files: frameit_chrome_${{ matrix.name }}.exe
+#- uses: meeDamian/github-release@2.0
+#      if: startsWith(github.ref, 'refs/tags/v')
+#      with:
+#        token: ${{ secrets.GITHUB_TOKEN }}
+#        draft: true
+#        files: frameit_chrome_${{ matrix.name }}.exe
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+      - run: find .
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          draft: true
+          prerelease: false
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./frameit_chrome_linux.exe/frameit_chrome_linux.exe
+          asset_name: ./frameit_chrome_linux.exe
+          asset_content_type: application/octet-stream
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./frameit_chrome_windows.exe/frameit_chrome_windows.exe
+          asset_name: ./frameit_chrome_windows.exe
+          asset_content_type: application/octet-stream
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./frameit_chrome_linux.exe/frameit_chrome_linux.exe
+          asset_name: ./frameit_chrome_macos.exe
+          asset_content_type: application/octet-stream
