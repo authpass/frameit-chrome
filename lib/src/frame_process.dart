@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:quiver/check.dart';
+import 'package:supercharged_dart/supercharged_dart.dart';
 
 final _logger = Logger('process_screenshots');
 
@@ -73,7 +74,7 @@ class FrameProcess {
   ) async {
     checkArgument(dir.existsSync(), message: 'Dir does not exist $dir');
     _logger.info('Processing images in $dir');
-    final createdScreenshots = <String>[];
+    final createdScreenshots = <ProcessScreenshotResult>[];
     await for (final fileEntity in dir.list(recursive: true)) {
       if (fileEntity is! File) {
         continue;
@@ -87,7 +88,7 @@ class FrameProcess {
       }
 
       for (final variant in name) {
-        final outFilePath = await _processScreenshot(
+        final result = await _processScreenshot(
           dir,
           outDir,
           file,
@@ -96,29 +97,60 @@ class FrameProcess {
           variant,
         );
 
-        if (outFilePath != null) {
-          createdScreenshots.add(outFilePath);
+        if (result != null) {
+          createdScreenshots.add(result);
         }
       }
     }
 
-    createdScreenshots.sort((a, b) => a.compareTo(b));
-
-    final imageHtml = createdScreenshots.map((e) {
-      final src = path.relative(e, from: outDir.path);
-      return '''<img src="$src" alt="" />''';
+    final imageHtml = createdScreenshots
+        .groupBy<String, ProcessScreenshotResult>(
+            (element) => element.config?.previewLabel)
+        .entries
+        .expand((e) {
+      e.value.sort((a, b) => a.compareTo(b));
+      return [
+        '<h1>${e.key ?? 'Framed Screenshots'}</h2>',
+        ...e.value.map((e) {
+          final src = path.relative(e.path, from: outDir.path);
+          return '''<img src="$src" alt="${path.basename(e.path)}" />''';
+        })
+      ];
     }).join('');
+    // createdScreenshots.sort((a, b) => a.compareTo(b));
 
-    await File(path.join(outDir.path, '_present.html')).writeAsString('''
-    <html lang="en"><head><title>present me</title>
+    // final imageHtml = createdScreenshots.map((e) {
+    //   final src = path.relative(e.path, from: outDir.path);
+    //   return '''<img src="$src" alt="" />''';
+    // }).join('');
+
+    await File(path.join(outDir.path, '_preview.html')).writeAsString('''
+    <!--suppress ALL --><html lang="en"><head><title>present me</title>
     <style>
+      :root {
+        --height: 600;
+      }
       body { background-color: #efefef; }
       img {
-        max-height: 600px;
+        max-height: calc(var(--height) * 1px);
         margin-left: 16px;
       }
+      input {
+        width: 400px;
+      }
     </style>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      let h = document.getElementById('height');
+      let root = document.documentElement;
+      h.addEventListener('input', function () {
+        console.log('setting to ' + h.value);
+        root.style.setProperty('--height', h.value);
+      });
+    });
+    </script>
     </head>
+    <div><label for="height">Preview Height:</label> <input type="range" min="100" max="2000" value="600" id="height" /></div>
     $imageHtml
     <body></body></html>
     ''');
@@ -126,7 +158,7 @@ class FrameProcess {
     return createdScreenshots;
   }
 
-  Future<String> _processScreenshot(
+  Future<ProcessScreenshotResult> _processScreenshot(
       Directory srcDir,
       Directory outDir,
       File file,
@@ -220,7 +252,7 @@ class FrameProcess {
     //   exit(0);
     // }
 
-    return outFilePath;
+    return ProcessScreenshotResult(imageConfig, outFilePath);
   }
 
   static String cssEscape(String str) {
@@ -285,5 +317,23 @@ class FrameProcess {
       }
     }
     return null;
+  }
+}
+
+class ProcessScreenshotResult implements Comparable<ProcessScreenshotResult> {
+  ProcessScreenshotResult(this.config, this.path);
+
+  final FrameImage config;
+  final String path;
+
+  @override
+  int compareTo(ProcessScreenshotResult other) {
+    if (config?.previewLabel != null) {
+      if (other.config?.previewLabel != null) {
+        return config.previewLabel.compareTo(other.config.previewLabel);
+      }
+      return 1;
+    }
+    return path.compareTo(other.path);
   }
 }

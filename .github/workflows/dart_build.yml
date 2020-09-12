@@ -1,0 +1,31 @@
+name: Dart Build Exe
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+#    container:
+#      image:  google/dart:latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cedx/setup-dart@v2
+      with:
+        release-channel: dev
+    - name: Install dependencies
+      run: pub get
+    - name: compile
+      run: dart compile exe bin/frameit_chrome.dart -o frameit_chrome_linux.exe
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2.1.4
+      with:
+        # Artifact name
+        name: frameit_chrome_linux.exe
+        path: frameit_chrome_linux.exe

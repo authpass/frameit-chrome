@@ -73,12 +73,21 @@ class FrameImage {
     this.cropWidth,
     this.cropHeight,
     this.device,
+    this.previewLabel,
   });
   factory FrameImage.fromJson(Map<String, dynamic> json) =>
       _$FrameImageFromJson(json);
   Map<String, dynamic> toJson() => _$FrameImageToJson(this);
 
+  /// Crop with of the final image. (null for using the original width)
   final int cropWidth;
+
+  /// Crop height of the final image. (null for using the original width)
   final int cropHeight;
+
+  /// device name used to look up correct frame.
   final String device;
+
+  /// Optional label used only for the `_preview.html`
+  final String previewLabel;
 }

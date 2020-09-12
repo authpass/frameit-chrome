@@ -19,6 +19,7 @@ dependencies:
   path: ^1.7.0
   json_annotation: ^3.0.1
   archive: ^2.0.13
+  supercharged_dart: ^1.2.0
 
 dev_dependencies:
   pedantic: ^1.9.2
