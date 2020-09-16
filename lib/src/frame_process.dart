@@ -169,7 +169,7 @@ class FrameProcess {
     //     '{path.basenameWithoutExtension(file.path)}_framed.png');
 
     // find title and keyword
-    final imageConfig = config.findImageConfig(screenshotName);
+    final imageConfig = config?.findImageConfig(screenshotName);
     final title = _findString(titleStrings, screenshotName);
     final keyword = _findString(keywordStrings, screenshotName);
     if (title == null) {
