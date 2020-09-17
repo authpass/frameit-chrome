@@ -3,6 +3,9 @@
 Embed app store and play store screenshots in device frames. 
 Drop in replacement for fastlane frameit.
 
+> Also check out the blog article for [how to use frameit-chrome for flutter apps](https://codeux.design/articles/automatically-add-device-frames-and-text-to-app-screenshots/)
+> for more details: https://codeux.design/articles/automatically-add-device-frames-and-text-to-app-screenshots/
+
 It uses a simple dart script to locate localized screenshots and parses
 `title.strings` and `keyword.strings` and uses **chrome headless**
 to render the screenshot with some css and html magic.
