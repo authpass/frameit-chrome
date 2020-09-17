@@ -74,6 +74,7 @@ class FrameImage {
     this.cropHeight,
     this.device,
     this.previewLabel,
+    this.css,
   });
   factory FrameImage.fromJson(Map<String, dynamic> json) =>
       _$FrameImageFromJson(json);
@@ -90,4 +91,7 @@ class FrameImage {
 
   /// Optional label used only for the `_preview.html`
   final String previewLabel;
+
+  /// Allows customizing the css.
+  final String css;
 }

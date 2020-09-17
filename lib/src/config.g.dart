@@ -78,6 +78,7 @@ FrameImage _$FrameImageFromJson(Map json) {
     cropHeight: json['cropHeight'] as int,
     device: json['device'] as String,
     previewLabel: json['previewLabel'] as String,
+    css: json['css'] as String,
   );
 }
 
@@ -87,6 +88,7 @@ Map<String, dynamic> _$FrameImageToJson(FrameImage instance) =>
       'cropHeight': instance.cropHeight,
       'device': instance.device,
       'previewLabel': instance.previewLabel,
+      'css': instance.css,
     };
 
 // **************************************************************************

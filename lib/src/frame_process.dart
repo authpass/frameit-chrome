@@ -190,13 +190,14 @@ class FrameProcess {
     final image = decodeImage(await file.readAsBytes());
 
     final css = await _createCss(
-      frame,
-      image.width,
-      image.height,
-      screenshot: file,
-      title: title,
-      keyword: keyword,
-    );
+          frame,
+          image.width,
+          image.height,
+          screenshot: file,
+          title: title,
+          keyword: keyword,
+        ) +
+        '\n${imageConfig?.css ?? ''}\n';
     final indexHtml = File(path.join(workingDir.path, 'index.html'));
     final cssFile = File(path.join(workingDir.path, 'index_override.css'));
     final screenshotFile = File(path.join(workingDir.path, 'screenshot.png'));
