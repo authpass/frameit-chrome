@@ -7,6 +7,9 @@ description: >-
 executables:
   frameit_chrome: frameit_chrome
 
+environment:
+  sdk: ">=2.8.0 <3.0.0"
+
 dependencies:
   meta: '>=1.0.0 <2.0.0'
   args: ^1.6.0
