@@ -27,7 +27,7 @@ class FramesProvider {
       if (fileBasename.length > deviceName.length) {
         final color = fileBasename.substring(deviceName.length + 1);
         if (FRAME_COLORS.contains(color)) {
-          _logger.info('Found for $deviceName: $fileBasename');
+          _logger.finest('Found for $deviceName: $fileBasename');
           return MapEntry(deviceName, color);
         }
       } else {

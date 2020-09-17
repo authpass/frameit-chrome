@@ -1,0 +1,14 @@
+# Optional config to further customize frameit_chrome
+
+# Rewriting file name patterns.
+rewrite:
+  - pattern: 'samsung-galaxy-s10-plus'
+    replace: 'samsungapps-samsung-galaxy-s10-plus'
+    action: duplicate
+
+# Customizing images.
+images:
+  samsungapps-samsung-galaxy-s10-plus:
+    cropHeight: 2600
+    device: 'samsung-galaxy-s10-plus'
+    previewLabel: 'Samsung App Store'
